@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "125831217352",
+    "project_id": "sokoni-dc60f",
+    "storage_bucket": "sokoni-dc60f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:125831217352:android:3d91b7bc271c6db065e5fd",
+        "android_client_info": {
+          "package_name": "com.jamiitek.sokoni_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZX0KPygwvGM6W702k0SneGmpLtl6g6t0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
