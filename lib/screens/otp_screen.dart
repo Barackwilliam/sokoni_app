@@ -1,9 +1,10 @@
+import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import '../services/auth_service.dart';
 import '../utils/constants.dart';
-import 'home_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
@@ -16,6 +17,63 @@ class _OtpScreenState extends State<OtpScreen> {
   final _authService = AuthService();
   String _otp = '';
   bool _loading = false;
+  int _resendIn = 60;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCountdown();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startCountdown() {
+    _timer?.cancel();
+    setState(() => _resendIn = 60);
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
+      if (_resendIn <= 1) {
+        t.cancel();
+        setState(() => _resendIn = 0);
+      } else {
+        setState(() => _resendIn--);
+      }
+    });
+  }
+
+  Future<void> _resend() async {
+    if (_resendIn > 0) return;
+    _startCountdown();
+    await _authService.sendOtp(
+      phoneNumber: widget.phoneNumber,
+      isResend: true,
+      onCodeSent: () {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('A new code has been sent', style: GoogleFonts.manrope()),
+          backgroundColor: AppColors.success,
+        ));
+      },
+      onError: (e) {
+        if (mounted) _showError(e);
+      },
+      onAutoVerified: (credential) async {
+        try {
+          await _authService.signInWithCredential(credential);
+          if (!mounted) return;
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        } catch (_) {}
+      },
+    );
+  }
 
   Future<void> _verify() async {
     if (_otp.length != 6) {
@@ -26,18 +84,25 @@ class _OtpScreenState extends State<OtpScreen> {
     try {
       await _authService.verifyOtp(_otp);
       if (!mounted) return;
-      Navigator.pushAndRemoveUntil(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 500),
-          pageBuilder: (_, __, ___) => const HomeScreen(),
-          transitionsBuilder: (_, a, __, child) =>
-              FadeTransition(opacity: a, child: child),
-        ),
-        (route) => false,
-      );
+      // AuthGate (the first route) listens to authStateChanges and will
+      // now show HomeScreen automatically.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'invalid-verification-code':
+          _showError('Wrong code, please check and try again');
+          break;
+        case 'session-expired':
+          _showError('Code expired. Tap Resend to get a new one');
+          break;
+        case 'network-request-failed':
+          _showError('No internet connection. Check your network');
+          break;
+        default:
+          _showError('Verification failed, please try again');
+      }
     } catch (e) {
-      _showError('Invalid code, please try again');
+      _showError('Verification failed, please try again');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -65,7 +130,7 @@ class _OtpScreenState extends State<OtpScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(colors: [
-                  AppColors.primary.withOpacity(0.25),
+                  AppColors.primary.withValues(alpha: 0.25),
                   Colors.transparent,
                 ]),
               ),
@@ -183,7 +248,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         ? []
                         : [
                             BoxShadow(
-                                color: AppColors.primary.withOpacity(0.5),
+                                color: AppColors.primary.withValues(alpha: 0.5),
                                 blurRadius: 28,
                                 offset: const Offset(0, 10)),
                           ],
@@ -205,19 +270,27 @@ class _OtpScreenState extends State<OtpScreen> {
               const SizedBox(height: 20),
 
               Center(
+                child: GestureDetector(
+                  onTap: _resend,
                   child: RichText(
                       text: TextSpan(children: [
-                TextSpan(
-                    text: "Didn't receive code? ",
-                    style: GoogleFonts.manrope(
-                        color: AppColors.textMuted, fontSize: 13)),
-                TextSpan(
-                    text: 'Resend',
-                    style: GoogleFonts.manrope(
-                        color: AppColors.primary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600)),
-              ]))),
+                    TextSpan(
+                        text: "Didn't receive code? ",
+                        style: GoogleFonts.manrope(
+                            color: AppColors.textMuted, fontSize: 13)),
+                    TextSpan(
+                        text: _resendIn > 0
+                            ? 'Resend in ${_resendIn}s'
+                            : 'Resend',
+                        style: GoogleFonts.manrope(
+                            color: _resendIn > 0
+                                ? AppColors.textMuted
+                                : AppColors.primary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600)),
+                  ])),
+                ),
+              ),
 
               const SizedBox(height: 40),
             ]),

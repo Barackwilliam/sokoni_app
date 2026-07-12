@@ -12,6 +12,7 @@ import 'add_business_screen.dart';
 import 'search_screen.dart';
 import 'profile_screen.dart';
 import 'notifications_screen.dart';
+import 'my_listings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -35,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _homeFeed(),
           const SearchScreen(),
           const AddBusinessScreen(),
+          const MyListingsScreen(),
           const ProfileScreen(),
         ]),
       ),
@@ -50,14 +52,14 @@ class _HomeScreenState extends State<HomeScreen> {
           color: AppColors.bgCard,
           borderRadius: BorderRadius.circular(36),
           border: Border.all(color: AppColors.divider, width: 0.5),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 30, offset: const Offset(0, 10))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 30, offset: const Offset(0, 10))],
         ),
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
           _navBtn(Icons.home_rounded,         'Home',     0),
           _navBtn(Icons.search_rounded,       'Search',   1),
           _navCenter(),
-          _navBtn(Icons.storefront_rounded,   'Listings', 0),
-          _navBtn(Icons.person_rounded,       'Profile',  3),
+          _navBtn(Icons.storefront_rounded,   'Listings', 3),
+          _navBtn(Icons.person_rounded,       'Profile',  4),
         ]),
       ),
     );
@@ -66,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _navBtn(IconData icon, String label, int index) {
     final sel = _navIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _navIndex = index < 3 ? index : 0),
+      onTap: () => setState(() => _navIndex = index),
       child: SizedBox(width: 60, child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Icon(icon, size: 22, color: sel ? AppColors.primary : AppColors.textMuted),
         const SizedBox(height: 3),
@@ -80,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
           width: sel ? 14 : 0, height: 2,
           decoration: BoxDecoration(
             color: AppColors.primary, borderRadius: BorderRadius.circular(2),
-            boxShadow: [if (sel) BoxShadow(color: AppColors.primary.withOpacity(0.7), blurRadius: 6)],
+            boxShadow: [if (sel) BoxShadow(color: AppColors.primary.withValues(alpha: 0.7), blurRadius: 6)],
           ),
         ),
       ])),
@@ -98,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
             gradient: AppColors.primaryGradient,
             shape: BoxShape.circle,
             border: Border.all(color: AppColors.bgBottom, width: 3),
-            boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.55), blurRadius: 20, offset: const Offset(0, 8))],
+            boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.55), blurRadius: 20, offset: const Offset(0, 8))],
           ),
           child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
         ),
@@ -106,19 +108,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _placeholder(String label, IconData icon) => Container(
-    decoration: const BoxDecoration(gradient: AppColors.bgGradient),
-    child: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(width: 70, height: 70,
-        decoration: BoxDecoration(color: AppColors.bgCard, shape: BoxShape.circle,
-          border: Border.all(color: AppColors.divider)),
-        child: Icon(icon, color: AppColors.primary, size: 32)),
-      const SizedBox(height: 16),
-      Text(label, style: AppTxt.heading(20)),
-      const SizedBox(height: 8),
-      Text('Coming soon', style: AppTxt.sub(13)),
-    ])),
-  );
 
   Widget _homeFeed() {
     return Container(
@@ -137,13 +126,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String _greeting() {
+    final h = DateTime.now().hour;
+    if (h < 12) return 'Good Morning';
+    if (h < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  }
+
   Widget _header() {
     return SafeArea(bottom: false, child: Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Column(children: [
         Row(children: [
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Good Morning 👋', style: GoogleFonts.manrope(color: AppColors.textSub, fontSize: 13, fontWeight: FontWeight.w500)),
+            Text('${_greeting()} 👋', style: GoogleFonts.manrope(color: AppColors.textSub, fontSize: 13, fontWeight: FontWeight.w500)),
             const SizedBox(height: 2),
             Text('Explore Sokoni', style: AppTxt.heading(24)),
           ])),
@@ -152,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             width: 40, height: 40,
             decoration: BoxDecoration(gradient: AppColors.primaryGradient, shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 10)]),
+              boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.4), blurRadius: 10)]),
             child: const Icon(Icons.person_rounded, color: Colors.white, size: 20),
           ),
         ]),
@@ -192,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
       height: 148,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 8))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
@@ -204,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
             errorWidget: (_, __, ___) => Container(color: AppColors.bgCardAlt),
           ),
           Container(decoration: const BoxDecoration(gradient: AppColors.darkOverlay)),
-          Container(color: AppColors.primary.withOpacity(0.07)),
+          Container(color: AppColors.primary.withValues(alpha: 0.07)),
           Padding(
             padding: const EdgeInsets.all(20),
             child: Row(children: [
@@ -212,8 +208,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.2), borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.primary.withOpacity(0.4)),
+                    color: AppColors.primary.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
                   ),
                   child: Text('Featured', style: GoogleFonts.manrope(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w700)),
                 ),
@@ -228,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
                   decoration: BoxDecoration(
                     gradient: AppColors.primaryGradient, borderRadius: BorderRadius.circular(12),
-                    boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 14, offset: const Offset(0, 4))],
+                    boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.5), blurRadius: 14, offset: const Offset(0, 4))],
                   ),
                   child: Text('Add Now', style: GoogleFonts.manrope(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
                 ),
@@ -263,10 +259,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 duration: const Duration(milliseconds: 220),
                 width: 82, margin: const EdgeInsets.symmetric(horizontal: 5),
                 decoration: BoxDecoration(
-                  color: sel ? cat.color.withOpacity(0.14) : AppColors.bgCard,
+                  color: sel ? cat.color.withValues(alpha: 0.14) : AppColors.bgCard,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: sel ? cat.color.withOpacity(0.55) : AppColors.divider, width: sel ? 1.5 : 0.5),
-                  boxShadow: sel ? [BoxShadow(color: cat.color.withOpacity(0.28), blurRadius: 14, offset: const Offset(0, 4))] : [],
+                  border: Border.all(color: sel ? cat.color.withValues(alpha: 0.55) : AppColors.divider, width: sel ? 1.5 : 0.5),
+                  boxShadow: sel ? [BoxShadow(color: cat.color.withValues(alpha: 0.28), blurRadius: 14, offset: const Offset(0, 4))] : [],
                 ),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Icon(cat.icon, color: sel ? cat.color : AppColors.textSub, size: 26),
@@ -293,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(children: [
           Container(width: 3, height: 18,
             decoration: BoxDecoration(color: cat.color, borderRadius: BorderRadius.circular(2),
-              boxShadow: [BoxShadow(color: cat.color.withOpacity(0.7), blurRadius: 6)])),
+              boxShadow: [BoxShadow(color: cat.color.withValues(alpha: 0.7), blurRadius: 6)])),
           const SizedBox(width: 10),
           Text(cat.name, style: AppTxt.bold(16)),
         ]),
@@ -338,8 +334,8 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 30),
       child: Column(children: [
         Container(width: 80, height: 80,
-          decoration: BoxDecoration(color: cat.color.withOpacity(0.1), shape: BoxShape.circle,
-            border: Border.all(color: cat.color.withOpacity(0.25), width: 1)),
+          decoration: BoxDecoration(color: cat.color.withValues(alpha: 0.1), shape: BoxShape.circle,
+            border: Border.all(color: cat.color.withValues(alpha: 0.25), width: 1)),
           child: Icon(cat.icon, color: cat.color, size: 36)),
         const SizedBox(height: 20),
         Text('No businesses yet', style: AppTxt.bold(16)),

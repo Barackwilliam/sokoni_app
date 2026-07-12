@@ -34,6 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
     await _authService.sendOtp(
       phoneNumber: phone,
       onCodeSent: () {
+        if (!mounted) return;
         setState(() => _loading = false);
         Navigator.push(
             context,
@@ -42,11 +43,19 @@ class _LoginScreenState extends State<LoginScreen> {
             ));
       },
       onError: (error) {
+        if (!mounted) return;
         setState(() => _loading = false);
         _showError(error);
       },
-      onAutoVerified: (credential) {
-        setState(() => _loading = false);
+      onAutoVerified: (credential) async {
+        // Android instant verification: sign in directly, AuthGate
+        // will switch to HomeScreen automatically.
+        try {
+          await _authService.signInWithCredential(credential);
+        } catch (_) {
+          if (mounted) _showError('Auto sign-in failed, enter the code manually');
+        }
+        if (mounted) setState(() => _loading = false);
       },
     );
   }
@@ -74,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(colors: [
-                  AppColors.primary.withOpacity(0.3),
+                  AppColors.primary.withValues(alpha: 0.3),
                   Colors.transparent,
                 ]),
               ),
@@ -98,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(13),
                     boxShadow: [
                       BoxShadow(
-                          color: AppColors.primary.withOpacity(0.5),
+                          color: AppColors.primary.withValues(alpha: 0.5),
                           blurRadius: 20,
                           offset: const Offset(0, 6))
                     ],
@@ -205,7 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? []
                         : [
                             BoxShadow(
-                                color: AppColors.primary.withOpacity(0.5),
+                                color: AppColors.primary.withValues(alpha: 0.5),
                                 blurRadius: 28,
                                 offset: const Offset(0, 10)),
                           ],
@@ -229,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Container(
                                 padding: const EdgeInsets.all(5),
                                 decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                     shape: BoxShape.circle),
                                 child: const Icon(Icons.arrow_forward_rounded,
                                     color: Colors.white, size: 16),

@@ -12,11 +12,6 @@ import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
 
-class _PickedImage {
-  final XFile xfile;
-  _PickedImage(this.xfile);
-}
-
 class AddBusinessScreen extends StatefulWidget {
   const AddBusinessScreen({super.key});
   @override
@@ -54,10 +49,12 @@ class _State extends State<AddBusinessScreen> {
       bool enabled = await Geolocator.isLocationServiceEnabled();
       if (!enabled) throw Exception('Enable location on your device');
       var perm = await Geolocator.checkPermission();
-      if (perm == LocationPermission.denied)
+      if (perm == LocationPermission.denied) {
         perm = await Geolocator.requestPermission();
-      if (perm == LocationPermission.deniedForever)
+      }
+      if (perm == LocationPermission.deniedForever) {
         throw Exception('Allow location in settings');
+      }
       final pos = await Geolocator.getCurrentPosition();
       _lat = pos.latitude;
       _lng = pos.longitude;
@@ -69,9 +66,10 @@ class _State extends State<AddBusinessScreen> {
       }
       setState(() {});
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
     } finally {
       if (mounted) setState(() => _gettingLoc = false);
     }
@@ -94,22 +92,24 @@ class _State extends State<AddBusinessScreen> {
     }
     setState(() => _saving = true);
     try {
-      final tempId = DateTime.now().millisecondsSinceEpoch.toString();
+      // Generate the document id FIRST so images live under the correct
+      // Storage path (businesses/{id}/...) — no more orphaned uploads.
+      final businessId = _firestore.newBusinessId();
       List<String> urls = [];
-      if (_images.isNotEmpty && !kIsWeb) {
-        urls = await _storage.uploadMultipleImages(
-            _images.map((x) => File(x.path)).toList(), tempId);
+      if (_images.isNotEmpty) {
+        // Bytes-based upload: works on Android, iOS AND web.
+        urls = await _storage.uploadMultipleImages(_images, businessId);
       }
-      await _firestore.addBusiness(BusinessModel(
-        id: '',
+      await _firestore.setBusiness(businessId, BusinessModel(
+        id: businessId,
         ownerId: user.uid,
         name: _name.text.trim(),
         category: _category,
         subCategory: _subCat!,
         description: _desc.text.trim(),
-        phone: _phone.text.trim(),
-        whatsapp:
-            _wa.text.trim().isEmpty ? _phone.text.trim() : _wa.text.trim(),
+        phone: _normalizePhone(_phone.text.trim()),
+        whatsapp: _normalizePhone(
+            _wa.text.trim().isEmpty ? _phone.text.trim() : _wa.text.trim()),
         imageUrls: urls,
         latitude: _lat!,
         longitude: _lng ?? 0,
@@ -142,13 +142,22 @@ class _State extends State<AddBusinessScreen> {
   void _err(String m) => ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(m), backgroundColor: AppColors.error));
 
+  /// Normalizes Tanzanian numbers to +255 format (0712... -> +255712...).
+  String _normalizePhone(String input) {
+    var p = input.replaceAll(' ', '').replaceAll('-', '');
+    if (p.startsWith('0')) return '+255${p.substring(1)}';
+    if (p.startsWith('255')) return '+$p';
+    if (!p.startsWith('+')) return '+255$p';
+    return p;
+  }
+
   // Build image thumbnail — web uses Image.network via bytes, mobile uses Image.file
   Widget _thumb(XFile x) {
     if (kIsWeb) {
       return FutureBuilder<Uint8List>(
         future: x.readAsBytes(),
         builder: (_, snap) {
-          if (!snap.hasData)
+          if (!snap.hasData) {
             return Container(
               width: 90,
               height: 90,
@@ -159,6 +168,7 @@ class _State extends State<AddBusinessScreen> {
                   child: CircularProgressIndicator(
                       color: AppColors.primary, strokeWidth: 2)),
             );
+          }
           return ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.memory(snap.data!,
@@ -209,12 +219,12 @@ class _State extends State<AddBusinessScreen> {
                             horizontal: 14, vertical: 9),
                         decoration: BoxDecoration(
                           color: sel
-                              ? cat.color.withOpacity(0.14)
+                              ? cat.color.withValues(alpha: 0.14)
                               : AppColors.bgCard,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                               color: sel
-                                  ? cat.color.withOpacity(0.5)
+                                  ? cat.color.withValues(alpha: 0.5)
                                   : AppColors.divider),
                         ),
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -247,12 +257,12 @@ class _State extends State<AddBusinessScreen> {
                             horizontal: 12, vertical: 7),
                         decoration: BoxDecoration(
                           color: sel
-                              ? AppColors.primary.withOpacity(0.14)
+                              ? AppColors.primary.withValues(alpha: 0.14)
                               : AppColors.bgCard,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                               color: sel
-                                  ? AppColors.primary.withOpacity(0.5)
+                                  ? AppColors.primary.withValues(alpha: 0.5)
                                   : AppColors.divider),
                         ),
                         child: Text(s,
@@ -293,7 +303,7 @@ class _State extends State<AddBusinessScreen> {
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: _lat != null
-                          ? AppColors.primary.withOpacity(0.45)
+                          ? AppColors.primary.withValues(alpha: 0.45)
                           : AppColors.divider,
                       width: _lat != null ? 1.5 : 0.5,
                     ),
@@ -394,7 +404,7 @@ class _State extends State<AddBusinessScreen> {
                         ? []
                         : [
                             BoxShadow(
-                                color: AppColors.primary.withOpacity(0.45),
+                                color: AppColors.primary.withValues(alpha: 0.45),
                                 blurRadius: 22,
                                 offset: const Offset(0, 8)),
                           ],
@@ -417,7 +427,7 @@ class _State extends State<AddBusinessScreen> {
                               Container(
                                 padding: const EdgeInsets.all(5),
                                 decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                     shape: BoxShape.circle),
                                 child: const Icon(Icons.arrow_forward_rounded,
                                     color: Colors.white, size: 16),

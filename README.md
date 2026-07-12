@@ -76,8 +76,10 @@ flutter run
 lib/
   models/          -> BusinessModel, ReviewModel
   services/        -> AuthService, FirestoreService, StorageService
-  screens/          -> splash, login, otp, home, search, profile, add business
-  widgets/          -> BusinessCard, ContactButtons
+  screens/         -> splash, auth_gate, login, otp, home, search,
+                      my_listings, profile, add business, notifications,
+                      business profile
+  widgets/         -> BusinessCard, ContactButtons, ShimmerLoader
   utils/constants.dart -> categories, colors, collection names
 ```
 
@@ -93,3 +95,6 @@ lib/
 - `lib/firebase_options.dart` ina placeholder values - LAZIMA uifanyie `flutterfire configure` kabla app haijafanya kazi.
 - Phone auth na Firebase inahitaji SHA-1/SHA-256 fingerprint ya app yako iwekwe kwenye Firebase Console (Android) - vinginevyo OTP haitatumwa kwenye real device.
 - Kwa testing haraka bila real phone number, unaweza kuongeza "test phone numbers" kwenye Firebase Console → Authentication → Sign-in method → Phone → Phone numbers for testing.
+
+
+> **Angalia `MAREKEBISHO.md`** kwa orodha kamili ya bug fixes na maboresho ya toleo hili.

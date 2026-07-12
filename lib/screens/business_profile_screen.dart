@@ -16,11 +16,29 @@ class BusinessProfileScreen extends StatefulWidget {
 
 class _State extends State<BusinessProfileScreen> {
   final _firestore = FirestoreService();
+  late Future<BusinessModel?> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _firestore.getBusinessById(widget.businessId);
+  }
+
+  void _refresh() {
+    setState(() => _future = _firestore.getBusinessById(widget.businessId));
+  }
+
+  /// Masks a phone-number username for privacy: +255712345678 -> +255 712 *** 678
+  String _maskName(String name) {
+    final digits = name.replaceAll(RegExp(r'[^0-9+]'), '');
+    if (!digits.startsWith('+') || digits.length < 10) return name;
+    return '${digits.substring(0, 7)} *** ${digits.substring(digits.length - 3)}';
+  }
 
   Color _catColor(String cat) {
     switch (cat) {
       case 'mafundi': return AppColors.mafundiColor;
-      case 'maduka': return AppColors.madukaCOlor;
+      case 'maduka': return AppColors.madukaColor;
       case 'beauty': return AppColors.beautyColor;
       case 'restaurant': return AppColors.restaurantColor;
       default: return AppColors.primary;
@@ -32,15 +50,17 @@ class _State extends State<BusinessProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.bgBottom,
       body: FutureBuilder<BusinessModel?>(
-        future: _firestore.getBusinessById(widget.businessId),
+        future: _future,
         builder: (_, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return Container(decoration: const BoxDecoration(gradient: AppColors.bgGradient),
               child: const Center(child: CircularProgressIndicator(color: AppColors.primary)));
           }
           final b = snap.data;
-          if (b == null) return Container(decoration: const BoxDecoration(gradient: AppColors.bgGradient),
-            child: Center(child: Text('Not found', style: AppTxt.sub(14))));
+          if (b == null) {
+            return Container(decoration: const BoxDecoration(gradient: AppColors.bgGradient),
+              child: Center(child: Text('Not found', style: AppTxt.sub(14))));
+          }
           return _content(b);
         },
       ),
@@ -58,16 +78,16 @@ class _State extends State<BusinessProfileScreen> {
           leading: GestureDetector(
             onTap: () => Navigator.pop(context),
             child: Container(margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: AppColors.bgCard.withOpacity(0.85), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: AppColors.bgCard.withValues(alpha: 0.85), borderRadius: BorderRadius.circular(10)),
               child: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textWhite, size: 17)),
           ),
           flexibleSpace: FlexibleSpaceBar(
             background: Stack(fit: StackFit.expand, children: [
               b.imageUrls.isNotEmpty
                   ? CachedNetworkImage(imageUrl: b.imageUrls.first, fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => Container(color: color.withOpacity(0.12),
+                      errorWidget: (_, __, ___) => Container(color: color.withValues(alpha: 0.12),
                         child: Icon(Icons.store_rounded, color: color, size: 60)))
-                  : Container(color: color.withOpacity(0.12),
+                  : Container(color: color.withValues(alpha: 0.12),
                       child: Icon(Icons.store_rounded, color: color, size: 60)),
               Positioned(bottom: 0, left: 0, right: 0, child: Container(height: 100,
                 decoration: const BoxDecoration(gradient: AppColors.darkOverlay))),
@@ -85,8 +105,8 @@ class _State extends State<BusinessProfileScreen> {
               if (b.isVerified) Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.14), borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.35)),
+                  color: AppColors.primary.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
                 ),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   const Icon(Icons.verified_rounded, color: AppColors.primary, size: 12),
@@ -100,13 +120,13 @@ class _State extends State<BusinessProfileScreen> {
 
             Row(children: [
               Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
                 child: Text(b.subCategory, style: GoogleFonts.manrope(fontSize: 11, fontWeight: FontWeight.w600, color: color))),
               const SizedBox(width: 10),
               if (b.isAvailable) Row(children: [
                 Container(width: 7, height: 7, decoration: BoxDecoration(
                   shape: BoxShape.circle, color: AppColors.success,
-                  boxShadow: [BoxShadow(color: AppColors.success.withOpacity(0.8), blurRadius: 6)])),
+                  boxShadow: [BoxShadow(color: AppColors.success.withValues(alpha: 0.8), blurRadius: 6)])),
                 const SizedBox(width: 5),
                 Text('Open Now', style: GoogleFonts.manrope(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.w600)),
               ]),
@@ -174,7 +194,7 @@ class _State extends State<BusinessProfileScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     gradient: AppColors.primaryGradient, borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))],
+                    boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 4))],
                   ),
                   child: Text('Write Review', style: GoogleFonts.manrope(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
                 ),
@@ -187,11 +207,13 @@ class _State extends State<BusinessProfileScreen> {
               stream: _firestore.streamReviews(b.id),
               builder: (_, snap) {
                 final reviews = snap.data ?? [];
-                if (reviews.isEmpty) return Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: AppColors.bgCard, borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.divider, width: 0.5)),
-                  child: Center(child: Text('No reviews yet. Be the first!', style: AppTxt.sub(13))));
+                if (reviews.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(color: AppColors.bgCard, borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.divider, width: 0.5)),
+                    child: Center(child: Text('No reviews yet. Be the first!', style: AppTxt.sub(13))));
+                }
                 return Column(children: reviews.take(5).map((r) => Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(14),
@@ -200,11 +222,11 @@ class _State extends State<BusinessProfileScreen> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [
                       Container(width: 34, height: 34,
-                        decoration: BoxDecoration(color: color.withOpacity(0.14), shape: BoxShape.circle),
-                        child: Center(child: Text(r.userName.isNotEmpty ? r.userName[0].toUpperCase() : 'U',
+                        decoration: BoxDecoration(color: color.withValues(alpha: 0.14), shape: BoxShape.circle),
+                        child: Center(child: Text(r.userName.isNotEmpty ? r.userName[r.userName.startsWith('+') ? 1 : 0].toUpperCase() : 'U',
                           style: GoogleFonts.manrope(color: color, fontWeight: FontWeight.w700, fontSize: 14)))),
                       const SizedBox(width: 10),
-                      Expanded(child: Text(r.userName, style: AppTxt.bold(13))),
+                      Expanded(child: Text(_maskName(r.userName), style: AppTxt.bold(13))),
                       RatingBarIndicator(rating: r.rating, itemCount: 5, itemSize: 12,
                         itemBuilder: (_, __) => const Icon(Icons.star_rounded, color: Color(0xFFF7941D))),
                     ]),
@@ -255,20 +277,39 @@ class _State extends State<BusinessProfileScreen> {
           GestureDetector(
             onTap: () async {
               final user = FirebaseAuth.instance.currentUser;
-              if (user == null || ctrl.text.trim().isEmpty) return;
-              await _firestore.addReview(ReviewModel(
-                id: '', businessId: businessId, userId: user.uid,
-                userName: user.phoneNumber ?? 'User',
-                rating: rating, comment: ctrl.text.trim(), createdAt: DateTime.now(),
-              ));
-              if (ctx.mounted) Navigator.pop(ctx);
-              setState(() {});
+              if (user == null) return;
+              if (ctrl.text.trim().isEmpty) {
+                ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
+                    content: Text('Please write a short comment'),
+                    backgroundColor: AppColors.error));
+                return;
+              }
+              try {
+                await _firestore.addReview(ReviewModel(
+                  id: '', businessId: businessId, userId: user.uid,
+                  userName: user.phoneNumber ?? 'User',
+                  rating: rating, comment: ctrl.text.trim(), createdAt: DateTime.now(),
+                ));
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (mounted) {
+                  _refresh();
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Thanks for your review!'),
+                      backgroundColor: AppColors.success));
+                }
+              } catch (_) {
+                if (ctx.mounted) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
+                      content: Text('Failed to submit review, try again'),
+                      backgroundColor: AppColors.error));
+                }
+              }
             },
             child: Container(
               width: double.infinity, height: 54, alignment: Alignment.center,
               decoration: BoxDecoration(
                 gradient: AppColors.primaryGradient, borderRadius: BorderRadius.circular(14),
-                boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.45), blurRadius: 18, offset: const Offset(0, 6))],
+                boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.45), blurRadius: 18, offset: const Offset(0, 6))],
               ),
               child: Text('Submit Review', style: GoogleFonts.manrope(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
             ),

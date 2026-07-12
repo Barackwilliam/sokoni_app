@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
-import 'home_screen.dart';
+import 'auth_gate.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -47,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             child: AnimatedBuilder(animation: _glowPulse, builder: (_, __) => Container(
               height: 320,
               decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [
-                AppColors.primary.withOpacity(_glowPulse.value * 0.45),
+                AppColors.primary.withValues(alpha: _glowPulse.value * 0.45),
                 Colors.transparent,
               ])),
             )),
@@ -56,7 +56,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           Positioned(top: -60, right: -60, child: AnimatedBuilder(animation: _glowPulse, builder: (_, __) => Container(
             width: 200, height: 200,
             decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [
-              const Color(0xFFF7941D).withOpacity(_glowPulse.value * 0.12),
+              const Color(0xFFF7941D).withValues(alpha: _glowPulse.value * 0.12),
               Colors.transparent,
             ])),
           ))),
@@ -76,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       decoration: BoxDecoration(
                         gradient: AppColors.primaryGradient,
                         borderRadius: BorderRadius.circular(13),
-                        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.6), blurRadius: 22, offset: const Offset(0, 6))],
+                        boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.6), blurRadius: 22, offset: const Offset(0, 6))],
                       ),
                       child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 24),
                     ),
@@ -119,7 +119,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   GestureDetector(
                     onTap: () => Navigator.of(context).pushReplacement(PageRouteBuilder(
                       transitionDuration: const Duration(milliseconds: 500),
-                      pageBuilder: (_, __, ___) => const HomeScreen(),
+                      pageBuilder: (_, __, ___) => const AuthGate(),
                       transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
                     )),
                     child: Container(
@@ -127,14 +127,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       decoration: BoxDecoration(
                         gradient: AppColors.primaryGradient,
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 28, offset: const Offset(0, 10))],
+                        boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.5), blurRadius: 28, offset: const Offset(0, 10))],
                       ),
                       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                         Text('Get Started', style: GoogleFonts.manrope(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700)),
                         const SizedBox(width: 12),
                         Container(
                           padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
                           child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 16),
                         ),
                       ]),

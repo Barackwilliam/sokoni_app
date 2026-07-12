@@ -14,7 +14,7 @@ class BusinessCard extends StatelessWidget {
   Color get _color {
     switch (business.category) {
       case 'mafundi': return AppColors.mafundiColor;
-      case 'maduka': return AppColors.madukaCOlor;
+      case 'maduka': return AppColors.madukaColor;
       case 'beauty': return AppColors.beautyColor;
       case 'restaurant': return AppColors.restaurantColor;
       default: return AppColors.primary;
@@ -38,7 +38,7 @@ class BusinessCard extends StatelessWidget {
             color: AppColors.bgCard,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: AppColors.divider, width: 0.5),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.35), blurRadius: 14, offset: const Offset(0, 5))],
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 14, offset: const Offset(0, 5))],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(18),
@@ -48,18 +48,18 @@ class BusinessCard extends StatelessWidget {
                   width: 106, height: 112,
                   child: business.imageUrls.isNotEmpty
                       ? CachedNetworkImage(imageUrl: business.imageUrls.first, fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(color: _color.withOpacity(0.08),
-                            child: Center(child: Icon(Icons.store_rounded, color: _color.withOpacity(0.3), size: 28))),
-                          errorWidget: (_, __, ___) => Container(color: _color.withOpacity(0.08),
-                            child: Center(child: Icon(Icons.store_rounded, color: _color.withOpacity(0.3), size: 28))))
-                      : Container(color: _color.withOpacity(0.08),
-                          child: Center(child: Icon(Icons.store_rounded, color: _color.withOpacity(0.4), size: 34))),
+                          placeholder: (_, __) => Container(color: _color.withValues(alpha: 0.08),
+                            child: Center(child: Icon(Icons.store_rounded, color: _color.withValues(alpha: 0.3), size: 28))),
+                          errorWidget: (_, __, ___) => Container(color: _color.withValues(alpha: 0.08),
+                            child: Center(child: Icon(Icons.store_rounded, color: _color.withValues(alpha: 0.3), size: 28))))
+                      : Container(color: _color.withValues(alpha: 0.08),
+                          child: Center(child: Icon(Icons.store_rounded, color: _color.withValues(alpha: 0.4), size: 34))),
                 ),
                 Positioned(left: 0, top: 0, bottom: 0, child: Container(
                   width: 3,
                   decoration: BoxDecoration(
                     color: _color,
-                    boxShadow: [BoxShadow(color: _color.withOpacity(0.9), blurRadius: 8)],
+                    boxShadow: [BoxShadow(color: _color.withValues(alpha: 0.9), blurRadius: 8)],
                   ),
                 )),
               ]),
@@ -74,7 +74,7 @@ class BusinessCard extends StatelessWidget {
                     if (business.isAvailable) Row(mainAxisSize: MainAxisSize.min, children: [
                       Container(width: 6, height: 6, decoration: BoxDecoration(
                         shape: BoxShape.circle, color: AppColors.success,
-                        boxShadow: [BoxShadow(color: AppColors.success.withOpacity(0.8), blurRadius: 6)],
+                        boxShadow: [BoxShadow(color: AppColors.success.withValues(alpha: 0.8), blurRadius: 6)],
                       )),
                       const SizedBox(width: 4),
                       Text('Open', style: GoogleFonts.manrope(fontSize: 10, color: AppColors.success, fontWeight: FontWeight.w600)),
@@ -83,7 +83,7 @@ class BusinessCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                    decoration: BoxDecoration(color: _color.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
+                    decoration: BoxDecoration(color: _color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
                     child: Text(business.subCategory, style: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.w600, color: _color)),
                   ),
                   const SizedBox(height: 8),
@@ -96,7 +96,7 @@ class BusinessCard extends StatelessWidget {
                   ]),
                   const SizedBox(height: 6),
                   Row(children: [
-                    Icon(Icons.location_on_rounded, size: 11, color: _color.withOpacity(0.8)),
+                    Icon(Icons.location_on_rounded, size: 11, color: _color.withValues(alpha: 0.8)),
                     const SizedBox(width: 3),
                     Expanded(child: Text(business.address,
                       style: GoogleFonts.manrope(fontSize: 11, color: AppColors.textSub),

@@ -12,7 +12,7 @@ class NotificationsScreen extends StatelessWidget {
       _NotifItem(Icons.star_rounded, 'Review Received', 'Someone rated your business 5 stars!', '1 hr ago', const Color(0xFFF7941D)),
       _NotifItem(Icons.location_on_rounded, 'Nearby Deal', 'Beauty salon offering 20% discount near Kariakoo', '3 hrs ago', AppColors.beautyColor),
       _NotifItem(Icons.handyman_rounded, 'Artisan Available', 'Electrician now available in your area', '5 hrs ago', AppColors.mafundiColor),
-      _NotifItem(Icons.info_rounded, 'Welcome to Sokoni', 'Start discovering businesses near you', 'Yesterday', AppColors.madukaCOlor),
+      _NotifItem(Icons.info_rounded, 'Welcome to Sokoni', 'Start discovering businesses near you', 'Yesterday', AppColors.madukaColor),
     ];
 
     return Scaffold(
@@ -55,7 +55,7 @@ class NotificationsScreen extends StatelessWidget {
                 ),
                 child: Row(children: [
                   Container(width: 44, height: 44,
-                    decoration: BoxDecoration(color: n.color.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(color: n.color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
                     child: Icon(n.icon, color: n.color, size: 20)),
                   const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

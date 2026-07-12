@@ -15,11 +15,13 @@ dependencies:
   firebase_core: ^2.27.0
   firebase_auth: ^4.17.4
   cloud_firestore: ^4.15.5
-  firebase_storage: ^11.6.6
 
   # Location
   geolocator: ^11.0.0
   geocoding: ^2.2.0
+
+  # Networking (Cloudinary image uploads)
+  http: ^1.2.0
 
   # UI
   url_launcher: ^6.2.5
