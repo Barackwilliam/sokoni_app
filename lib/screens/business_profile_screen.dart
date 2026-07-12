@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/business_model.dart';
 import '../services/firestore_service.dart';
+import '../services/auth_service.dart';
 import '../utils/constants.dart';
 import '../widgets/contact_buttons.dart';
 
@@ -287,7 +288,7 @@ class _State extends State<BusinessProfileScreen> {
               try {
                 await _firestore.addReview(ReviewModel(
                   id: '', businessId: businessId, userId: user.uid,
-                  userName: user.phoneNumber ?? 'User',
+                  userName: AuthService.displayNameFor(user),
                   rating: rating, comment: ctrl.text.trim(), createdAt: DateTime.now(),
                 ));
                 if (ctx.mounted) Navigator.pop(ctx);

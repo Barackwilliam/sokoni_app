@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
 import '../utils/constants.dart';
-import 'signup_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
+  final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _auth = AuthService();
@@ -20,25 +20,35 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    _name.dispose();
     _email.dispose();
     _password.dispose();
     super.dispose();
   }
 
-  Future<void> _signIn() async {
+  Future<void> _signUp() async {
+    final name = _name.text.trim();
     final email = _email.text.trim();
     final pass = _password.text;
+    if (name.isEmpty) {
+      _error('Please enter your name');
+      return;
+    }
     if (email.isEmpty || !email.contains('@')) {
       _error('Please enter a valid email address');
       return;
     }
-    if (pass.isEmpty) {
-      _error('Please enter your password');
+    if (pass.length < 6) {
+      _error('Password must be at least 6 characters');
       return;
     }
     setState(() => _loading = true);
     try {
-      await _auth.signInWithEmail(email: email, password: pass);
+      await _auth.signUpWithEmail(name: name, email: email, password: pass);
+      if (mounted) {
+        // Pop back to AuthGate, which now shows HomeScreen.
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
     } catch (e) {
       if (mounted) _error(AuthService.friendlyError(e));
     } finally {
@@ -49,31 +59,14 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _google() async {
     setState(() => _googleLoading = true);
     try {
-      await _auth.signInWithGoogle();
+      final cred = await _auth.signInWithGoogle();
+      if (cred != null && mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
     } catch (e) {
       if (mounted) _error(AuthService.friendlyError(e));
     } finally {
       if (mounted) setState(() => _googleLoading = false);
-    }
-  }
-
-  Future<void> _forgotPassword() async {
-    final email = _email.text.trim();
-    if (email.isEmpty || !email.contains('@')) {
-      _error('Enter your email above first, then tap Forgot password');
-      return;
-    }
-    try {
-      await _auth.sendPasswordReset(email);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Password reset link sent to $email',
-              style: GoogleFonts.manrope()),
-          backgroundColor: AppColors.success,
-        ));
-      }
-    } catch (e) {
-      if (mounted) _error(AuthService.friendlyError(e));
     }
   }
 
@@ -111,35 +104,24 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 48),
-                  Row(children: [
-                    Container(
-                      width: 44,
-                      height: 44,
+                  const SizedBox(height: 16),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 42,
+                      height: 42,
                       decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(13),
-                        boxShadow: [
-                          BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.5),
-                              blurRadius: 20,
-                              offset: const Offset(0, 6))
-                        ],
+                        color: AppColors.bgCard,
+                        borderRadius: BorderRadius.circular(12),
+                        border:
+                            Border.all(color: AppColors.divider, width: 0.5),
                       ),
-                      child: const Icon(Icons.storefront_rounded,
-                          color: Colors.white, size: 24),
+                      child: const Icon(Icons.arrow_back_rounded,
+                          color: AppColors.textWhite, size: 20),
                     ),
-                    const SizedBox(width: 12),
-                    Text('SOKONI',
-                        style: GoogleFonts.manrope(
-                          color: AppColors.textWhite,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 3,
-                        )),
-                  ]),
-                  const SizedBox(height: 52),
-                  Text('Welcome\nBack 👋',
+                  ),
+                  const SizedBox(height: 32),
+                  Text('Create\nAccount ✨',
                       style: GoogleFonts.manrope(
                         fontSize: 36,
                         fontWeight: FontWeight.w800,
@@ -148,13 +130,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         letterSpacing: -1,
                       )),
                   const SizedBox(height: 12),
-                  Text('Sign in to continue to Sokoni',
+                  Text('Join Sokoni and discover local businesses',
                       style: GoogleFonts.manrope(
                         fontSize: 15,
                         color: AppColors.textSub,
                         height: 1.5,
                       )),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 36),
+                  _label('FULL NAME'),
+                  const SizedBox(height: 10),
+                  _field(
+                    controller: _name,
+                    hint: 'e.g. Willy Barack',
+                    icon: Icons.person_outline_rounded,
+                    keyboardType: TextInputType.name,
+                  ),
+                  const SizedBox(height: 20),
                   _label('EMAIL'),
                   const SizedBox(height: 10),
                   _field(
@@ -168,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 10),
                   _field(
                     controller: _password,
-                    hint: 'Your password',
+                    hint: 'At least 6 characters',
                     icon: Icons.lock_outline_rounded,
                     obscure: _obscure,
                     suffix: IconButton(
@@ -181,24 +172,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () => setState(() => _obscure = !_obscure),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: GestureDetector(
-                      onTap: _forgotPassword,
-                      child: Text('Forgot password?',
-                          style: GoogleFonts.manrope(
-                            color: AppColors.primary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          )),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
                   _primaryButton(
-                    label: 'Sign In',
+                    label: 'Create Account',
                     loading: _loading,
-                    onTap: _loading ? null : _signIn,
+                    onTap: _loading ? null : _signUp,
                   ),
                   const SizedBox(height: 24),
                   Row(children: [
@@ -216,18 +194,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 28),
                   Center(
                     child: GestureDetector(
-                      onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const SignupScreen())),
+                      onTap: () => Navigator.pop(context),
                       child: RichText(
                         text: TextSpan(children: [
                           TextSpan(
-                              text: "Don't have an account? ",
+                              text: "Already have an account? ",
                               style: GoogleFonts.manrope(
                                   color: AppColors.textMuted, fontSize: 14)),
                           TextSpan(
-                              text: 'Sign Up',
+                              text: 'Sign In',
                               style: GoogleFonts.manrope(
                                   color: AppColors.primary,
                                   fontSize: 14,

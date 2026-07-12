@@ -14,6 +14,7 @@ dependencies:
   # Firebase
   firebase_core: ^2.27.0
   firebase_auth: ^4.17.4
+  google_sign_in: ^6.2.1
   cloud_firestore: ^4.15.5
 
   # Location
@@ -27,7 +28,6 @@ dependencies:
   url_launcher: ^6.2.5
   image_picker: ^1.0.7
   cached_network_image: ^3.3.1
-  pin_code_fields: ^8.0.1
   google_fonts: ^6.2.0
   flutter_rating_bar: ^4.0.1
   shimmer: ^3.0.0

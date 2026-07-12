@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../utils/constants.dart';
@@ -10,7 +11,8 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final phone = user?.phoneNumber ?? 'Guest';
+    final name = AuthService.displayNameFor(user);
+    final email = user?.email ?? '';
 
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.bgGradient),
@@ -42,9 +44,9 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('My Account', style: AppTxt.bold(16)),
+                Text(name, style: AppTxt.bold(16)),
                 const SizedBox(height: 4),
-                Text(phone, style: AppTxt.sub(13)),
+                Text(email, style: AppTxt.sub(13)),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
