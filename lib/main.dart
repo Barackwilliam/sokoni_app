@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'utils/constants.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
