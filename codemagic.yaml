@@ -4,8 +4,8 @@ workflows:
     max_build_duration: 30
     instance_type: mac_mini_m2
     environment:
-      android_signing:
-        - sokoni_keystore   # jina la keystore reference utakayoupload Codemagic
+      # android_signing:
+      #   - sokoni_keystore   
       flutter: stable
       java: 17
     scripts:
